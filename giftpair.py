@@ -26,20 +26,33 @@ import random
 
 import click
 
-def is_valid(gifter, giftee, chosen):
-    return not (chosen and chosen.get(giftee) == gifter) or gifter == giftee
+def is_valid(gifter, giftee, chosen, bad_pairs):
+    if chosen and chosen.get(giftee) == gifter:
+        return False
+    if gifter == giftee:
+        return False
+    if gifter in bad_pairs and bad_pairs[gifter] == giftee:
+        return False
+
+    return True
 
 
 @click.command()
 @click.option("--name", "-n", multiple=True)
-def main(name):
+@click.option("--badpairs", "-b", multiple=True)
+def main(name,badpairs):
     chosen = dict()
+    bad_pairs = dict()
+    for pair in badpairs:
+        pairlist = pair.split(',')
+        bad_pairs[pairlist[0]] = pairlist[1]
+        bad_pairs[pairlist[1]] = pairlist[0]
     gifters = list(copy.deepcopy(name))
     giftees = list(copy.deepcopy(name))
     while gifters:
         gifter = random.choices(gifters)[0]
         giftee = random.choices(giftees)[0]
-        if not is_valid(gifter, giftee, chosen):
+        if not is_valid(gifter, giftee, chosen, bad_pairs):
             if len(gifters) == 1:
                 click.echo(f"Using invalid pair {gifter} buys for {giftee}.")
             else:
